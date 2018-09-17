@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from functionSet import DES
+from DES import DES
 
 # initial permutation table
 tab_init_P = np.array([2, 6, 3, 1, 4, 8, 5, 7]) - 1
