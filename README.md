@@ -96,3 +96,4 @@ plaintext    : [1 1 0 1 0 0 1 0]
 ciphertext   : [0 1 0 1 0 1 0 1]
 plaintext rec: [1 1 0 1 0 0 1 0] # same as the plaintext
 ```
+You can also change the plaintext and initial key in line 26 & 27 and play with the code:)
