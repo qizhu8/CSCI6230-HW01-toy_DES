@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import numpy as np
 from DES import DES
+
+import socket
+import os
+import sys
+import hashlib # check the md5 of the received file
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
 
 # initial permutation table
 tab_init_P = np.array([2, 6, 3, 1, 4, 8, 5, 7]) - 1
@@ -23,7 +32,6 @@ tab_key_P8 = np.array([6, 3, 7, 4, 8, 5, 10, 9]) - 1
 
 
 # test input
-plaintext = np.array([1, 1, 0, 1, 0, 0, 1, 0], dtype=bool)
 init_key_10bits = np.array([0, 1, 1, 0, 1, 0, 1, 0, 1, 1], dtype=bool)
 rounds=2
 
@@ -37,8 +45,18 @@ des.set_F_P_table(tab_F_P)
 des.set_key_init_P_table(tab_key_P10)
 des.set_key_sub_P_table(tab_key_P8)
 
-cipher = des.encrypt(plaintext, init_key_10bits)
-plaintext_rec = des.decrypt(cipher, init_key_10bits)
-print("plaintext    :", plaintext+0)
-print("ciphertext   :", cipher+0)
-print("plaintext rec:", plaintext_rec+0)
+# socket communication
+host = 'localhost'
+port = 9999
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((host, port))
+print("start sending")
+with open('tx_file.txt', 'rb') as f:
+    bytes = f.read()
+    cipher = des.encrypt(bytes, init_key_10bits)
+    sock.send(cipher.encode())
+sock.shutdown(socket.SHUT_WR)
+sock.close()
+
+sent_file_md5 = hashlib.md5(open('tx_file.txt','rb').read()).hexdigest()
+print("The md5 of the sent file is:", sent_file_md5)

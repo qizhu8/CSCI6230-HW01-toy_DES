@@ -2,6 +2,9 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import sys
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
 
 class DES(object):
     """docstring for DES."""
@@ -192,6 +195,28 @@ class DES(object):
         output = np.logical_xor(input1, input2)
         return output
 
+    def byte_to_bin(self, bytes):
+        # convert bytes (or char) to bool list
+        if len(bytes) == 1:
+            if not isinstance(bytes[0], int):
+                bytes = ord(bytes)
+            return [int(item) > 0 for item in np.binary_repr(bytes, width=8)]
+        bin_list = []
+        if isinstance(bytes[0], int):
+            ord_flag = False
+        else:
+            ord_flag = True
+        for byte in bytes:
+            if ord_flag:
+                byte = ord(byte)
+            bin_list.append([int(item) > 0 for item in np.binary_repr(byte, width=8)])
+        return bin_list
+
+    def bin_to_byte(self, bins):
+        if len(bins[0]) == 1:
+            return int("".join([str(item+0) for item in bins]), 2)
+        return [chr(int("".join([str(item+0) for item in rst]), 2)) for rst in bins]
+
     def split_to_halves(self, input):
         # split input sequence to two subsequences of same length
         input_len = len(input)
@@ -202,9 +227,10 @@ class DES(object):
         output = np.array([input[:input_len//2], input[input_len//2:]])
         return output
 
-    def encrypt(self, plaintext, init_key):
+    def encrypt_one_byte(self, plaintext, init_key, keys=None):
         # main block to encrypt plain text
-        keys = self.gen_keys(init_key)
+        if keys is None:
+            keys = self.gen_keys(init_key)
         plaintext_initP = self.permutation(plaintext, self.tab_text_init_P)
         plaintext_initP_halves = self.split_to_halves(plaintext_initP)
         L0, R0 = plaintext_initP_halves[0], plaintext_initP_halves[1]
@@ -214,11 +240,12 @@ class DES(object):
             R0, L0 = R1, L1
         L0, R0 = R0, L0
         cipher = self.permutation(np.concatenate([L0, R0], axis=0), self.tab_text_inv_P)
-        return cipher
+        return cipher, keys
 
-    def decrypt(self, cipher, init_key):
+    def decrypt_one_byte(self, cipher, init_key, keys=None):
         # main block to decrypt cipher text
-        keys = self.gen_keys(init_key)
+        if keys is None:
+            keys = self.gen_keys(init_key)
         cipher_initP = self.permutation(cipher, self.tab_text_init_P)
         cipher_initP_halves = self.split_to_halves(cipher_initP)
         L0, R0 = cipher_initP_halves[0], cipher_initP_halves[1]
@@ -228,4 +255,22 @@ class DES(object):
             R0, L0 = R1, L1
         L0, R0 = R0, L0
         plaintext = self.permutation(np.concatenate([L0, R0], axis=0), self.tab_text_inv_P)
-        return plaintext
+        return plaintext, keys
+
+    def encrypt(self, text_str, init_key):
+        keys = None
+        cipher_list = []
+        for text_byte in self.byte_to_bin(text_str):
+            cipher_byte, keys = self.encrypt_one_byte(text_byte, init_key, keys)
+            cipher_list.append(cipher_byte)
+        cipher_str = "".join(self.bin_to_byte(cipher_list))
+        return cipher_str
+
+    def decrypt(self, cipher_str, init_key):
+        keys = None
+        text_list = []
+        for cipher_byte in self.byte_to_bin(cipher_str):
+            text_byte, keys = self.decrypt_one_byte(cipher_byte, init_key, keys)
+            text_list.append(text_byte)
+        text_str = "".join(self.bin_to_byte(text_list))
+        return text_str
