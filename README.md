@@ -91,9 +91,27 @@ split_to_halves(input)
 ```
 
 ## Running Results
+### En/Decrypt One Byte
+You can use ```python3``` to run the local file "DES_local_test_main.py". The result is
 ```
 plaintext    : [1 1 0 1 0 0 1 0]
 ciphertext   : [0 1 0 1 0 1 0 1]
 plaintext rec: [1 1 0 1 0 0 1 0] # same as the plaintext
 ```
-You can also change the plaintext and initial key in line 26 & 27 and play with the code:)
+You can also change the plaintext and initial key in line 31 & 32 and play with the code:)
+
+### Socket Commnucation Example
+Please run ```rx.py``` first, then the ```tx.py```. A file named ```tx_file.txt``` will be sent by ```tx.py``` via tcp protocol. In the receiver part, the received file is named ```rx_file.txt```.
+You will also see the md5 of the sent and received files. The expected output on both terminals are
+
+tx.py
+```bash
+start sending
+The md5 of the sent file is: edc67f7092c40ff56cd8364b76109cba
+```
+
+rx.py
+```bash
+connected
+The md5 of the received file is: edc67f7092c40ff56cd8364b76109cba
+```
